@@ -23,7 +23,7 @@ int xes_to_sq3(char* filename) {
     }
     catch (const XMLException& toCatch) {
         char* message = XMLString::transcode(toCatch.getMessage());
-        cout << "Error during initialization! :\n"
+        std::cout << "Error during initialization! :\n"
              << message << "\n";
         XMLString::release(&message);
         return 1;
@@ -48,22 +48,22 @@ int xes_to_sq3(char* filename) {
         // void parse( const InputSource &source )
         parser->parse(filename);
         post_process_database(db);
-        std::cout << "\n\n\n all ok\n";
+        std::cout << "Сonversion to SQ3 successful\n";
     } catch (const XMLException& toCatch) {
         char* message = XMLString::transcode(toCatch.getMessage());
-        cout << "Exception message is: \n"
+        std::cout << "Exception message is: \n"
              << message << "\n";
         XMLString::release(&message);
         return -1;
     } catch (const SAXParseException& toCatch) {
         char* message = XMLString::transcode(toCatch.getMessage());
-        cout << "Exception message is: \n"
+        std::cout << "Exception message is: \n"
              << message << "\n";
         XMLString::release(&message);
         return -1;
-    } catch (const exception& e) {
-        cout << "Exception message is: \n"
-        << e.what() << endl; ;
+    } catch (const std::exception& e) {
+        std::cout << "Exception message is: \n"
+        << e.what() << std::endl; ;
         return -1;
     }
 

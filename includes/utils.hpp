@@ -9,11 +9,14 @@
 
 #include "includes/XesElements.hpp"
 
-using namespace std;
 using namespace xercesc;
 
 
-void assert_contains_attributes(string tag_name, const std::map<std::string, std::string>& attributes, const vector<string>& params);
+void assert_contains_attributes(
+    std::string tag_name,
+    const std::map<std::string, std::string>& attributes,
+    const std::vector<std::string>& params
+);
 const std::map<std::string, std::string> get_attributes(AttributeList& attributes);
 std::string to_lower(std::string str);
 std::vector<std::string> split(std::string str, char sep=' ');

@@ -8,7 +8,7 @@
 int main (int argc, char* argv[]) {
     if (argc != 3)
     {
-        std::cout << "arguments error\nneed 3 arguments" << std::endl;
+        std::cout << "Arguments error\nNeed 3 arguments\n";
         return 1;
     }
 

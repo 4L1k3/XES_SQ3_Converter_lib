@@ -44,30 +44,6 @@ std::vector<std::string> split(const std::string str, char sep) {
 }
 
 
-static int callback(void *data, int argc, char **argv, char **azColName){
-   int i;
-   fprintf(stderr, "%s: ", (const char*)data);
-   for(i=0; i<argc; i++){
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-   }
-   printf("\n");
-   return 0;
-}
-
-
-long long get_lrid(sqlite3* db) {
-    char* err;
-    string query = "SELECT last_insert_rowid();";
-    std::cout << "database last rowid query = " << query << "\n\n";
-    int rc = sqlite3_exec(db, query.c_str(), callback, NULL, &err);
-    if (rc != SQLITE_OK) {
-        cout << "database last rowid error: " << err << "\n\n";
-    } else {
-        std::cout << "database last rowid successful\n\n";
-    }
-    return 1;
-}
-
 const std::map<std::string, std::string> get_attributes(AttributeList& attributes) {
     XMLSize_t len = attributes.getLength();
     std::map<std::string, std::string> attrs;
@@ -81,12 +57,9 @@ const std::map<std::string, std::string> get_attributes(AttributeList& attribute
 
 
 void assert_contains_attributes(std::string tag_name, const std::map<std::string, std::string>& attrs, const std::vector<std::string>& keys) {
-    std::cout << "assert_contains inned" << std::endl;
     for (auto key: keys) {
         if (attrs.find(key) == attrs.end()) {
-            std::stringstream msg;
-            msg << "Missing " << key << " attribute in " << tag_name;
-            throw MissingAttributeException(msg.str());
+            throw MissingAttributeException(key, tag_name);
         }
     }
     return;
@@ -116,9 +89,7 @@ AttributeType get_attribute_type(std::string tag_name) {
     if (tag_name == "list") {
         return AttributeType::LIST;
     }
-    std::stringstream msg;
-    msg << "Unknown XES attribute tag name " << tag_name;
-    throw NotXesAttributeTagException(msg.str());
+    throw NotXesAttributeTagException(tag_name);
 }
 
 

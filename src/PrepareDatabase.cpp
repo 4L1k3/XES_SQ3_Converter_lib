@@ -2,43 +2,42 @@
 #include <sqlite3.h>
 #include <string>
 
+#include "includes/exceptions.hpp"
 #include "includes/PrepareDatabase.hpp"
 
-using namespace std;
 
-
-void begin  (sqlite3* db) {
+void begin(sqlite3* db) {
     char* err;
-    string query = "BEGIN TRANSACTION;";
+    std::string query = "BEGIN TRANSACTION;";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "database begin transaction error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 }
 
 
 void commit(sqlite3* db) {
     char* err;
-    string query = "Commit;";
+    std::string query = "Commit;";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "database commit error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 }
 
 
 void prepare_database(sqlite3* db) {
     char* err;
-    string query = "CREATE TABLE IF NOT EXISTS AttributeContainers(ID INTEGER PRIMARY KEY AUTOINCREMENT);";
+    std::string query = "CREATE TABLE IF NOT EXISTS AttributeContainers(ID INTEGER PRIMARY KEY AUTOINCREMENT);";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS EventContainers(ID INTEGER PRIMARY KEY AUTOINCREMENT);";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS Logs("
@@ -48,7 +47,7 @@ void prepare_database(sqlite3* db) {
             "FOREIGN KEY (EventContainerID) REFERENCES EventContainers(ID));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS Extensions("
@@ -60,7 +59,7 @@ void prepare_database(sqlite3* db) {
             "FOREIGN KEY (LogID) REFERENCES Logs(LogID));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS Classifiers("
@@ -72,7 +71,7 @@ void prepare_database(sqlite3* db) {
             "CONSTRAINT ScopeConstraint CHECK (Scope IN ('trace', 'event')));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS ClassifierKeys("
@@ -82,7 +81,7 @@ void prepare_database(sqlite3* db) {
             "FOREIGN KEY (ClassifierID) REFERENCES Classifiers(ClassifierID));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS Globals("
@@ -94,7 +93,7 @@ void prepare_database(sqlite3* db) {
             "CONSTRAINT ScopeConstraint CHECK (Scope IN ('trace', 'event')));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS Traces("
@@ -106,7 +105,7 @@ void prepare_database(sqlite3* db) {
             "FOREIGN KEY (LogID) REFERENCES Logs(LogID));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS Events("
@@ -116,7 +115,7 @@ void prepare_database(sqlite3* db) {
             "FOREIGN KEY (ContainedEventContainerID) REFERENCES EventContainers(ID));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     query = "CREATE TABLE IF NOT EXISTS Attributes("
@@ -131,7 +130,7 @@ void prepare_database(sqlite3* db) {
             "(Type IN ('string', 'date', 'int', 'float', 'boolean', 'id', 'list')));";
     rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "prepare database error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
 
     begin(db);
@@ -145,10 +144,10 @@ void post_process_database(sqlite3* db) {
 
 sqlite3_int64 allocate_atribute_container(sqlite3* db) {
     char* err;
-    string query = "INSERT INTO AttributeContainers(ID) VALUES(NULL);";
+    std::string query = "INSERT INTO AttributeContainers(ID) VALUES(NULL);";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "database allocate atribute container error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
     sqlite3_int64 last_row_id = sqlite3_last_insert_rowid(db);
     return last_row_id;
@@ -156,10 +155,10 @@ sqlite3_int64 allocate_atribute_container(sqlite3* db) {
 
 sqlite3_int64 allocate_event_container(sqlite3* db) {
     char* err;
-    string query = "INSERT INTO EventContainers(ID) VALUES(NULL);";
+    std::string query = "INSERT INTO EventContainers(ID) VALUES(NULL);";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "database allocate event container error: " << err << endl;
+        throw DataBaseQueryExecuteError(query, err);
     }
     sqlite3_int64 last_row_id = sqlite3_last_insert_rowid(db);
     return last_row_id;

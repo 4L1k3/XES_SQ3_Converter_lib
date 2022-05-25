@@ -1,7 +1,6 @@
 #include <iostream>
 #include <sqlite3.h>
 #include <string>
-#include <sstream>
 #include <map>
 
 #include "includes/XesToSq3Handler.hpp"
@@ -12,7 +11,6 @@
 #include "includes/exceptions.hpp"
 
 
-using namespace std;
 using namespace xercesc;
 
 
@@ -24,17 +22,15 @@ XesToSq3Converter::~XesToSq3Converter() {}
 
 
 Log XesToSq3Converter::create_log() {
-    std::cout << "create log inned" << "\n";
-    std::string attribute_container_id = to_string(allocate_atribute_container(db));
-    std::string eid = to_string(allocate_event_container(db));
+    std::string attribute_container_id = std::to_string(allocate_atribute_container(db));
+    std::string eid = std::to_string(allocate_event_container(db));
     char* err;
-    string query = "INSERT INTO Logs(LogID, EventContainerID) VALUES(" +
+    std::string query = "INSERT INTO Logs(LogID, EventContainerID) VALUES(" +
                     attribute_container_id + ", " +
                     eid + ");";
-    std::cout << "create log query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create log error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create log successful\n\n";
     }
@@ -44,93 +40,81 @@ Log XesToSq3Converter::create_log() {
 
 
 Extension XesToSq3Converter::create_extension(std::string name, std::string prefix, std::string uri) {
-    std::cout << "create extension inned" << "\n";
     char* err;
     std::string query = "INSERT INTO Extensions(LogID, Name, Prefix, Uri) VALUES(" +
                         log.get_attribute_container_id() + ", '" +
                         name + "', '" +
                         prefix + "', '" +
                         uri + "');";
-    std::cout << "create extension query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create extension error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create extension successful\n\n";
     }
-    std::cout << sqlite3_last_insert_rowid(db) << std::endl;
-    return Extension(to_string(sqlite3_last_insert_rowid(db)), name, prefix, uri);
+    return Extension(std::to_string(sqlite3_last_insert_rowid(db)), name, prefix, uri);
 }
 
 
 Global XesToSq3Converter::create_global(std::string scope) {
-    std::cout << "create global inned\n";
-    std::string attribute_container_id = to_string(allocate_atribute_container(db));
+    std::string attribute_container_id = std::to_string(allocate_atribute_container(db));
     char* err;
     std::string query = "INSERT INTO Globals(LogID, GlobalID, Scope) VALUES(" +
                         log.get_attribute_container_id() + ", " +
                         attribute_container_id + ", '" +
                         scope + "');";
-    std::cout << "database create global query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create global error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create global successful\n\n";
     }
-    std::cout << sqlite3_last_insert_rowid(db) << std::endl;
     return Global(attribute_container_id, scope);
 }
 
 
 Classifier XesToSq3Converter::create_classifier(std::string name, std::vector<std::string>& keys, std::string scope) {
-    std::cout << "create classifier inned\n";
     char* err;
     std::string query = "INSERT INTO Classifiers(LogID, Name, Scope) VALUES(" +
                         log.get_attribute_container_id() + ", '" +
                         name + "', '" +
                         scope + "');";
-    std::cout << "database create classifier query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create classifier error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create classifier successful\n\n";
     }
     long long id = sqlite3_last_insert_rowid(db);
-    std::cout << "last insert long rowid = " << id << std::endl;
     for (auto key: keys) {
         char* err;
         std::string query = "INSERT INTO ClassifierKeys(ClassifierID, Key) VALUES(" +
-                            to_string(id) + ", '" +
+                            std::to_string(id) + ", '" +
                             key + "');";
-        std::cout << "database create classifier keys query = " << query << "\n\n";
         rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
         if (rc != SQLITE_OK) {
-            cout << "!!!!!!!!!!!!!!!database create classifier keys error: " << err << "\n\n";
+            throw DataBaseQueryExecuteError(query, err);
         } else {
             std::cout << "database create classifier keys successful\n\n";
         }
     }
-    return Classifier(to_string(id), name, keys, scope);
+    return Classifier(std::to_string(id), name, keys, scope);
 }
 
 
 Trace XesToSq3Converter::create_trace() {
     commit(db);
     begin(db);
-    std::cout << "create trace inned" << "\n";
-    std::string attribute_container_id = to_string(allocate_atribute_container(db));
-    std::string eid = to_string(allocate_event_container(db));
+    std::string attribute_container_id = std::to_string(allocate_atribute_container(db));
+    std::string eid = std::to_string(allocate_event_container(db));
     char* err;
-    string query = "INSERT INTO Traces(TraceID, LogID, EventsID) VALUES(" +
+    std::string query = "INSERT INTO Traces(TraceID, LogID, EventsID) VALUES(" +
                     attribute_container_id + ", " +
                     log.get_attribute_container_id() + ", " +
                     eid + ");";
-    std::cout << "create trace query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create trace error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create trace successful\n\n";
     }
@@ -139,17 +123,15 @@ Trace XesToSq3Converter::create_trace() {
 
 
 Event XesToSq3Converter::create_event() {
-    std::cout << "create event inned" << "\n";
-    std::string attribute_container_id = to_string(allocate_atribute_container(db));
+    std::string attribute_container_id = std::to_string(allocate_atribute_container(db));
     char* err;
     std::string contained_event_cont_id = event_containers.empty() ? "null" : event_containers.top().get_event_container_id();
-    string query = "INSERT INTO Events(EventID, ContainedEventContainerID) VALUES(" +
+    std::string query = "INSERT INTO Events(EventID, ContainedEventContainerID) VALUES(" +
                     attribute_container_id + ", " +
                     contained_event_cont_id + ");";
-    std::cout << "create event query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create event error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create event successful\n\n";
     }
@@ -158,21 +140,18 @@ Event XesToSq3Converter::create_event() {
 
 
 ListAttributeValues XesToSq3Converter::create_list_values() {
-    std::cout << "create list values inned\n";
     if (attribute_containers.empty()) {
-        std::cout << "!!!!!!!!!!!ERROR attribute containers must be not empty\n";
-        // throw;
+        throw EmptyAttributeContainersError("Attribute containers must be not empty");
     }
     char* err;
-    std::string attribute_container_id = to_string(allocate_atribute_container(db));
+    std::string attribute_container_id = std::to_string(allocate_atribute_container(db));
     std::string contained_attribute_cont_id = attribute_containers.top().get_attribute_container_id();
     std::string query = "UPDATE Attributes SET Value = " +
                         attribute_container_id + " WHERE AttributeID = " +
                         contained_attribute_cont_id + ";";
-    std::cout << "update attribute query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create attribute error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create attribute successful\n\n";
     }
@@ -181,22 +160,20 @@ ListAttributeValues XesToSq3Converter::create_list_values() {
 
 
 std::shared_ptr<Attribute> XesToSq3Converter::create_attribute(AttributeType attribute_type, std::string key, std::string value) {
-    std::cout << "create attribute inned\n";
-    std::string attribute_container_id = to_string(allocate_atribute_container(db));
+    std::string attribute_container_id = std::to_string(allocate_atribute_container(db));
     ListAttributeValues list_attribute_values;
 
     char* err;
     std::string contained_attribute_cont_id = attribute_containers.empty() ? "null" : attribute_containers.top().get_attribute_container_id();
-    string query = "INSERT INTO Attributes(AttributeID, ContainedAttributeContainerID, Type, Key, Value) VALUES(" +
+    std::string query = "INSERT INTO Attributes(AttributeID, ContainedAttributeContainerID, Type, Key, Value) VALUES(" +
                     attribute_container_id + ", " +
                     contained_attribute_cont_id + ", '" +
                     attribute_type_to_str(attribute_type) + "', '" +
                     key + "', '" +
                     value + "');";
-    std::cout << "create attribute query = " << query << "\n\n";
     int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &err);
     if (rc != SQLITE_OK) {
-        cout << "!!!!!!!!!!!!!!!database create attribute error: " << err << "\n\n";
+        throw DataBaseQueryExecuteError(query, err);
     } else {
         std::cout << "database create attribute successful\n\n";
     }
@@ -253,20 +230,20 @@ void XesToSq3Converter::pop_event_container() {
 void XesToSq3Handler::startElement(const XMLCh* const name, AttributeList& attributes)
 {
     numSeq++;
-    cout << numSeq << "\t-> Start : " << toCh(name) << endl;
-    if (toCh(name) == (string)"log") {
+    std::cout << numSeq << "\t-> Start : " << toCh(name) << std::endl;
+    if (toCh(name) == (std::string)"log") {
         Log log = converter->create_log();
         converter->push_attribute_container(log);
         converter->push_event_container(log);
         return;
     }
-    if (toCh(name) == (string)"extension") {
+    if (toCh(name) == (std::string)"extension") {
         const std::map<std::string, std::string> attrs = get_attributes(attributes);
         assert_contains_attributes("extension", attrs, {"name", "prefix", "uri"});
         converter->create_extension(attrs.at("name"), attrs.at("prefix"), attrs.at("uri"));
         return;
     }
-    if (toCh(name) == (string)"global") {
+    if (toCh(name) == (std::string)"global") {
         const std::map<std::string, std::string> attrs = get_attributes(attributes);
         std::string scope = "event";
         if (attrs.find("scope") != attrs.end() && attrs.at("scope") == "trace") {
@@ -276,7 +253,7 @@ void XesToSq3Handler::startElement(const XMLCh* const name, AttributeList& attri
         converter->push_attribute_container(global_element);
         return;
     }
-    if (toCh(name) == (string)"classifier") {
+    if (toCh(name) == (std::string)"classifier") {
         const std::map<std::string, std::string> attrs = get_attributes(attributes);
         assert_contains_attributes("classifier", attrs, {"name", "keys"});
         std::string scope = "event";
@@ -287,25 +264,25 @@ void XesToSq3Handler::startElement(const XMLCh* const name, AttributeList& attri
         converter->create_classifier(attrs.at("name"), keys, scope);
         return;
     }
-    if (toCh(name) == (string)"trace") {
+    if (toCh(name) == (std::string)"trace") {
         Trace trace = converter->create_trace();
         converter->push_attribute_container(trace);
         converter->push_event_container(trace);
         return;
     }
-    if (toCh(name) == (string)"event") {
+    if (toCh(name) == (std::string)"event") {
         Event event = converter->create_event();
         converter->push_attribute_container(event);
         return;
     }
     if (
-        (toCh(name) == (string)"string") or
-        (toCh(name) == (string)"date") or
-        (toCh(name) == (string)"int") or
-        (toCh(name) == (string)"float") or
-        (toCh(name) == (string)"boolean") or
-        (toCh(name) == (string)"id") or
-        (toCh(name) == (string)"list")
+        (toCh(name) == (std::string)"string") or
+        (toCh(name) == (std::string)"date") or
+        (toCh(name) == (std::string)"int") or
+        (toCh(name) == (std::string)"float") or
+        (toCh(name) == (std::string)"boolean") or
+        (toCh(name) == (std::string)"id") or
+        (toCh(name) == (std::string)"list")
     ) {
         std::string tag_name = to_lower(toCh(name));
         AttributeType attribute_type = get_attribute_type(tag_name);
@@ -319,48 +296,46 @@ void XesToSq3Handler::startElement(const XMLCh* const name, AttributeList& attri
             value = attrs.at("value");
         }
 
-        shared_ptr<Attribute> attribute = converter->create_attribute(attribute_type, key, value);
+        std::shared_ptr<Attribute> attribute = converter->create_attribute(attribute_type, key, value);
         converter->push_attribute_container(*attribute);
         return;
     }
-    if (toCh(name) == (string)"values") {
+    if (toCh(name) == (std::string)"values") {
         ListAttributeValues list_attr_values = converter->create_list_values();
         converter->push_attribute_container(list_attr_values);
         return;
     }
     XMLSize_t len = attributes.getLength();
     for (XMLSize_t index = 0; index < len; index++) {
-        cout << "\t\t-> " << toCh(attributes.getName(index))
+        std::cout << "\t\t-> " << toCh(attributes.getName(index))
              << "="
-             << toCh(attributes.getValue(index)) << endl;
+             << toCh(attributes.getValue(index)) << std::endl;
     }
-    stringstream msg;
-    msg << "Unknown XES tag name " << toCh(name);
-    throw UnknownXesTagNameException(msg.str());
+    throw UnknownXesTagNameException(toCh(name));
 }
 
 
 void XesToSq3Handler::endElement(const XMLCh* const name)
 {
     numSeq++;
-    cout << numSeq <<  "\t-> End   : " << toCh(name) << endl;
+    std::cout << numSeq <<  "\t-> End   : " << toCh(name) << std::endl;
     if (
-        (toCh(name) == (string)"log") or
-        (toCh(name) == (string)"global") or
-        (toCh(name) == (string)"trace") or
-        (toCh(name) == (string)"event") or
-        (toCh(name) == (string)"string") or
-        (toCh(name) == (string)"date") or
-        (toCh(name) == (string)"int") or
-        (toCh(name) == (string)"float") or
-        (toCh(name) == (string)"boolean") or
-        (toCh(name) == (string)"id") or
-        (toCh(name) == (string)"list") or
-        (toCh(name) == (string)"values")
+        (toCh(name) == (std::string)"log") or
+        (toCh(name) == (std::string)"global") or
+        (toCh(name) == (std::string)"trace") or
+        (toCh(name) == (std::string)"event") or
+        (toCh(name) == (std::string)"string") or
+        (toCh(name) == (std::string)"date") or
+        (toCh(name) == (std::string)"int") or
+        (toCh(name) == (std::string)"float") or
+        (toCh(name) == (std::string)"boolean") or
+        (toCh(name) == (std::string)"id") or
+        (toCh(name) == (std::string)"list") or
+        (toCh(name) == (std::string)"values")
     ) {
         converter->pop_attribute_container();
     }
-    if ((toCh(name) == (string)"log") or (toCh(name) == (string)"trace")) {
+    if ((toCh(name) == (std::string)"log") or (toCh(name) == (std::string)"trace")) {
         converter->pop_event_container();
     }
 }
@@ -368,7 +343,7 @@ void XesToSq3Handler::endElement(const XMLCh* const name)
 
 void XesToSq3Handler::fatalError(const SAXParseException& exception)
 {
-    cout << "Fatal Error: " << toCh(exception.getMessage())
+    std::cout << "Fatal Error: " << toCh(exception.getMessage())
          << " at line: " << exception.getLineNumber()
-         << endl;
+         << std::endl;
 }

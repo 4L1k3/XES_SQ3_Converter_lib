@@ -60,9 +60,7 @@ static int write_attribute_callback(void *data, int argc, char **argv, char **az
     write_attributes(last_attribute);
     if (value["Type"] == "list") {
         if (value["Value"].empty()) {
-            //throw
-            std::cout << "need values tag in list\n";
-            return -1;
+            throw NoValuesTagInListError("Need values tag in list");
         }
         Attribute list_attribute_values = Attribute(value["Value"], "");
         {
@@ -243,7 +241,7 @@ static int write_log_callback(void *data, int argc, char **argv, char **azColNam
         value[azColName[i]] = argv[i] ? argv[i] : "null";
     }
     WRITER.write_start_tag("log");
-    WRITER.write_attribute("version", "1.0");
+    WRITER.write_attribute("xes.version", "1.0");
     Log log = Log(value["LogID"], value["EventContainerID"]);
     write_extension(log);
     write_globals(log);
@@ -261,7 +259,6 @@ void write_logs() {
     std::string query = "SELECT LogID, EventContainerID FROM Logs;";
     int rc = sqlite3_exec(db, query.c_str(), write_log_callback, NULL, &err);
     if (rc != SQLITE_OK) {
-        std::cout << query << "\n";
         throw WriteToXesException("logs", err);
     }
     return;
@@ -269,9 +266,9 @@ void write_logs() {
 
 
 void convert_from_sq3_to_xes(std::string xes_filename) {
-    std::cout << "convert inned" << std::endl;
     write_logs();
     WRITER.write_to_file(xes_filename);
+    std::cout << "Сonversion to XES successful\n";
 }
 
 
