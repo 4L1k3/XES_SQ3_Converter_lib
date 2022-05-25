@@ -6,6 +6,6 @@
 
 # Запуск
 ## Конвертация из XES в SQ3
-Из папки build ```./XES_SQ3_Converter to_sq3 xes_file.xes```
+Из папки build ```./XES_SQ3_Converter to_sq3 <xes_filename>.xes```
 ## Конвертация из SQ3 в XES
-Из папки build ```./XES_SQ3_Converter to_xes db_name.db```
+Из папки build ```./XES_SQ3_Converter to_xes <db_filename>.db```
